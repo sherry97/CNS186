@@ -1,0 +1,51 @@
+#!/Users/sherrywang/anaconda3/bin/python
+import os
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
+import glob
+import json
+import numpy as np
+from subprocess import run
+import sys
+
+#-- Launch config (edit this) -------------------------------------------------
+
+# Hostname
+host = "ubuntu@ec2-54-188-79-49.us-west-2.compute.amazonaws.com"
+
+# Path to the SSH key required to access the host
+key_path = "~/CNS186_key.pem"
+
+# Root directory name (on the host)
+root = "CNS186"
+
+# Paths to sync (local → host) before running
+paths_to_push = ["lib", "run"]
+
+# Paths to sync (host → local) after running
+paths_to_pull = ["data/output"]
+
+#-- Host redirection ----------------------------------------------------------
+
+if host != "local" and sys.argv[-1] == "--remote":
+    run(["rm", "-f", "nohup.out"])
+    run(["rsync", "-raz", "--relative", '-e', f'ssh -i {key_path}', paths_to_push, f"{host}:{root}"])
+    run(["nohup", "ssh", "-i", key_path, host, f"mkdir -p {root}; cd {root}; source activate tensorflow_p36; ./run"])
+    run(["rsync", "-raz", '-e', f'ssh -i {key_path}', f"{host}:{root}/{','.join(paths_to_pull)}", "."])
+    exit()
+
+#-- Scratch area (edit this) --------------------------------------------------
+import lib
+
+experiments_dir = 'experiments'
+lib.generate_exp(experiments_dir)
+
+for f in sorted(glob.glob(f'{experiments_dir}/*.json')):
+    with open(f, "r") as fp:
+        state = json.load(fp)
+    print(f"---Running experiment {state['id']} from {f}")
+    try:
+        lib.run_exp(state,train_model=True)
+    except AssertionError as e:
+        print(f'Experiment failed: {e}')
+        continue
