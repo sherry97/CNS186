@@ -4,7 +4,7 @@ __all__ = ['generate_exp']
 
 def generate_exp(experiments_dir):
     learning_rates = [0.001,0.005,0.01]
-    n_epochs = [10]
+    n_epochs = [15]
     transformation_modes = [False]
 
     for i, lr in enumerate(learning_rates):

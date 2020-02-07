@@ -100,16 +100,19 @@ def get_model():
             nn.Conv2d(2 * n_channel,2 * n_channel,1),
             nn.BatchNorm2d(2 * n_channel),
             nn.ReLU(),
-            nn.Conv2d(2 * n_channel,51,1),
+            nn.Conv2d(2 * n_channel,3,1),
             nn.ReLU(),
             nn.AdaptiveAvgPool2d(1),
         )
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    model = model.to(device=device)
     return model
 
 def train(model, exp_config):
     # training setup
     model.train()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(f'Training on {device}.')
     if exp_config['transform_mode']:
         transform = get_optical_flow_transform()
     else:
@@ -172,15 +175,21 @@ def validate(model, exp_config):
     criterion = nn.CrossEntropyLoss()
 
     # store results
-    performance = np.zeros([len(data_loader)])
+    n_correct = 0
+    n_total = 0
+    avg_loss = 0
 
     # iterate over dataset
     with torch.no_grad():
         for i, data in enumerate(data_loader):
-            vid, labels = data
+            vid, _, labels = data
             vid, labels = vid.to(device=device), labels.to(device=device)
-            out = model(vid)
+            out = model(vid).squeeze(3).squeeze(2)
             loss = criterion(out, labels)
-            performance[i] = loss.item()
+            n_correct += torch.sum(torch.argmax(out,dim=1)==labels)
+            n_total += labels.shape[0]
+            avg_loss += loss.item()
+
+    performance = np.array([avg_loss, n_correct]) / n_total
 
     return performance
