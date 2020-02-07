@@ -16,7 +16,7 @@ def run_exp(exp_config, train_model=False):
         pt = torch.load(exp_config['model_path'])
         m = m.load_state_dict(pt['model_state_dict'])
         print(f"Loaded model from epoch {pt['epoch']}.")
-    val_loss = validate(m)
+    val_loss = validate(m, exp_config)
     np.save(val_file_path, val_loss)
     plot(training_loss, exp_config, train=True)
     plot(val_loss, exp_config, train=False)
