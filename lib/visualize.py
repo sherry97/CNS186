@@ -15,10 +15,10 @@ def plot(data, exp_config, train=True):
     else:
         fig_path += 'val.png'
         fig, axs = plt.subplots(1,2,figsize=(16,10))
-        axs[0].plot(data[0])
+        axs[0].scatter(0,data[0])
         axs[0].set_ylabel('cross entropy loss')
         axs[0].set_yscale('log')
-        axs[1].plot(data[1])
+        axs[1].scatter(0,data[1])
         axs[1].set_ylabel('accuracy')
 
     plt.savefig(fig_path)

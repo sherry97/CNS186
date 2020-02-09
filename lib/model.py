@@ -17,7 +17,7 @@ data_dir = r'data/input'
 data_dir_ext = r'data/annotations'
 frame_size = 240
 
-def optical_flow(x):
+def optical_flow(x, flow_index):
     # get luminance
     x = x.to(dtype=torch.float).mean(dim=-1)/255
     # pad if necessary
@@ -28,9 +28,19 @@ def optical_flow(x):
     # crop to square
     i = torch.randint(x.shape[2]-frame_size,size=(1,1)).item()
     x = x[:,:,i:i+frame_size]
-    # TODO: use OpenCV to calculate LK flow
-    x = x.mean(dim=0,keepdim=True)
-    assert x.shape == (1,frame_size,frame_size)
+    # use OpenCV to calculate Farneback dense optical flow
+    flow = x.numpy()
+    for i in range(x.shape[0]-1):
+        prvs = flow[i]
+        next = flow[i+1]
+        out = cv2.calcOpticalFlowFarneback(prvs,next, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+        # flow_index=0 => flow value; flow_index=1 => flow direction
+        flow[i] = out[:,:,flow_index]
+    x = torch.tensor(flow)
+    # average over time
+    x = x.mean(dim=0, keepdim=True)
+    assert x.shape == (1,frame_size,frame_size), \
+        f'Invalid input tensor size. Expected (1,{frame_size},{frame_size}), got {x.shape}'
     return x
 
 def generic_transform(x):
@@ -49,8 +59,8 @@ def generic_transform(x):
     assert x.shape == (1,frame_size,frame_size)
     return x
 
-def get_optical_flow_transform():
-    return transforms.Lambda(lambda x : optical_flow(x))
+def get_optical_flow_transform(flow_index=0):
+    return transforms.Lambda(lambda x : optical_flow(x,flow_index))
 
 def get_generic_transform():
     return transforms.Lambda(lambda x : generic_transform(x))
@@ -65,7 +75,7 @@ def load_data(transform, train=True):
                                         transform=transform)
     print(f'Loaded {len(dataset)} entries from {data_dir}. Convert to DataLoader...')
     data_loader = torch.utils.data.DataLoader(dataset,
-                                        batch_size=128,
+                                        batch_size=64,
                                         shuffle=train)
     print('Done.')
     return data_loader
@@ -114,7 +124,7 @@ def train(model, exp_config):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f'Training on {device}.')
     if exp_config['transform_mode']:
-        transform = get_optical_flow_transform()
+        transform = get_optical_flow_transform(flow_index=exp_config['flow_index'])
     else:
         transform = get_generic_transform()
     data_loader = load_data(transform, train=True)
