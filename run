@@ -39,14 +39,15 @@ import lib
 
 experiments_dir = 'experiments'
 lib.generate_exp(experiments_dir)
-index_offset = 3
+
+test_indices = [2,5,8,10,15,17]
 
 for f in sorted(glob.glob(f'{experiments_dir}/*.json')):
     with open(f, "r") as fp:
         state = json.load(fp)
-    if state['id'] < index_offset:
+    if state['id'] not in test_indices:
         continue
-    print(f"---Running experiment {state['id']} from {f}: {state}")
+    print(f"---Running {state['id']} from {f}: {state}")
     try:
         lib.run_exp(state,train_model=True)
     except AssertionError as e:
