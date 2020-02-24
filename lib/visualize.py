@@ -22,3 +22,4 @@ def plot(data, exp_config, train=True):
         axs[1].set_ylabel('accuracy')
 
     plt.savefig(fig_path)
+    plt.clf()

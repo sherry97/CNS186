@@ -40,7 +40,7 @@ import lib
 experiments_dir = 'experiments'
 lib.generate_exp(experiments_dir)
 
-test_indices = [2,5,8,10,15,17]
+test_indices = [i for i in range(6)]
 
 for f in sorted(glob.glob(f'{experiments_dir}/*.json')):
     with open(f, "r") as fp:

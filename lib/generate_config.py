@@ -5,17 +5,17 @@ __all__ = ['generate_exp']
 def generate_exp(experiments_dir):
     index_offset = 0
     learning_rates = [0.001,0.01,0.1]
-    n_epochs = [5]
+    n_epochs = [10]
     transformation_modes = [False,True]
     flow_index = [0,1]
     integration_index = [0,1]
 
     id = index_offset
     for k, tm in enumerate(transformation_modes):
-        for i, lr in enumerate(learning_rates):
-            for j, ne in enumerate(n_epochs):
-                for l, fi in enumerate(flow_index):
-                    for m, ii in enumerate(integration_index):
+        for j, ne in enumerate(n_epochs):
+            for l, fi in enumerate(flow_index):
+                for m, ii in enumerate(integration_index):
+                    for i, lr in enumerate(learning_rates):
                         if not tm and l > 0:
                             continue
                         exp = {'id':id,
