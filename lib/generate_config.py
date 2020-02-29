@@ -8,7 +8,7 @@ def generate_exp(experiments_dir):
     n_epochs = [10]
     transformation_modes = [False,True]
     flow_index = [0,1]
-    integration_index = [0,1]
+    integration_index = [0,1,2]
 
     id = index_offset
     for k, tm in enumerate(transformation_modes):

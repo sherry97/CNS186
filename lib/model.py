@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
-from scipy.stats import norm
+from scipy.stats import norm, beta
 
 __all__ = ['get_model', 'train', 'validate']
 
@@ -40,10 +40,15 @@ def optical_flow(x, flow_index, integration_index):
     x = torch.tensor(flow)
     # integrate over time via weighted sum
     if integration_index == 0:
-        weights = torch.ones(x.shape[0]) / x.shape[0]
-    else:
+        weights = torch.ones(x.shape[0])
+    elif integration_index == 1:
         max_x = x.shape[0]
         weights = torch.tensor([norm.pdf(dx/max_x-0.5) for dx in range(max_x)])
+    else:
+        max_x = x.shape[0]
+        a = 2
+        b = 1.5
+        weights = torch.tensor([beta.pdf(dx/max_x-0.5,a,b) for dx in range(max_x)])
     weights = weights / torch.sum(weights)
     weights = weights.repeat_interleave(frame_size*frame_size)
     weights = weights.reshape(-1,frame_size,frame_size)
@@ -68,9 +73,14 @@ def generic_transform(x, integration_index):
     # integrate over time via weighted sum
     if integration_index == 0:
         weights = torch.ones(x.shape[0]) / x.shape[0]
-    else:
+    elif integration_index == 1:
         max_x = x.shape[0]
         weights = torch.tensor([norm.pdf(dx/max_x-0.5) for dx in range(max_x)])
+    else:
+        max_x = x.shape[0]
+        a = 2
+        b = 1.5
+        weights = torch.tensor([beta.pdf(dx/max_x-0.5,a,b) for dx in range(max_x)])
     weights = weights / torch.sum(weights)
     weights = weights.repeat_interleave(frame_size*frame_size)
     weights = weights.reshape(-1,frame_size,frame_size)

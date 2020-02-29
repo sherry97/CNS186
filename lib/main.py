@@ -27,8 +27,12 @@ def run_exp(exp_config, train_model=False):
         m, training_loss = train(m, exp_config, starting_epoch, training_loss)
         np.save(train_file_path, training_loss)
     else:
-        training_loss = np.load(train_file_path)
+        try:
+            training_loss = np.load(train_file_path)
+        except FileNotFoundError:
+            pass
     # validate
+    print(f'Validating...')
     val_loss = validate(m, exp_config)
     np.save(val_file_path, val_loss)
     # val_loss = np.load(val_file_path)
