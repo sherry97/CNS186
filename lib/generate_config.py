@@ -5,7 +5,7 @@ __all__ = ['generate_exp']
 def generate_exp(experiments_dir):
     index_offset = 0
     learning_rates = [0.001,0.01,0.1]
-    n_epochs = [10]
+    n_epochs = [30]
     transformation_modes = [False,True]
     flow_index = [0,1]
     integration_index = [0,1,2]

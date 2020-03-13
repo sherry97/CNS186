@@ -171,6 +171,7 @@ def train(model, exp_config, starting_epoch, training_loss):
     if starting_epoch > 0:
         pt = torch.load(exp_config['model_path'])
         optimizer.load_state_dict(pt['optimizer_state_dict'])
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 10, gamma=0.1)
     n_epochs = exp_config['n_epochs']
 
     # store results
@@ -205,6 +206,7 @@ def train(model, exp_config, starting_epoch, training_loss):
         print(f'Epoch {epoch+1}/{n_epochs} complete. \
                 Est {elapsed * (n_epochs-epoch):0.2f} minutes remaining. \
                 Last loss: {performance[(epoch+1)*dataset_size-1]}')
+        scheduler.step()
 
     global_elapsed = (time.clock() - global_start) / 60
     print(f'Finished training in {global_elapsed:0.2f} minutes.')
